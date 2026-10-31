@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLA Mesa de Ayuda Campus Virtual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: ficha de acuerdo arriba (los números que se firman), luego pestañas CSS por componente del SLA */
+:root {
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --ink: #142033;
+  --muted: #56627a;
+  --line: #d8deea;
+  --accent: #1f3f8a;      /* azul institucional */
+  --accent-soft: #e4eafa;
+  --gold: #b88a10;        /* oro UNAH, solo para lo que se firma */
+  --gold-soft: #fbf2d6;
+  --crit: #b4232a;
+  --crit-soft: #fbe5e6;
+  --warn: #9a6200;
+  --warn-soft: #fdf0d8;
+  --ok: #1f7a4d;
+  --ok-soft: #e1f3ea;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1522; --surface: #172033; --ink: #e7ecf6; --muted: #9eabc4; --line: #2a3650;
+    --accent: #8fb0ff; --accent-soft: #1f2d4f; --gold: #e6bd4a; --gold-soft: #3a3016;
+    --crit: #ff8a8f; --crit-soft: #42191d; --warn: #f2b65a; --warn-soft: #3d2c12;
+    --ok: #6fd3a0; --ok-soft: #133a29; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1522; --surface: #172033; --ink: #e7ecf6; --muted: #9eabc4; --line: #2a3650;
+  --accent: #8fb0ff; --accent-soft: #1f2d4f; --gold: #e6bd4a; --gold-soft: #3a3016;
+  --crit: #ff8a8f; --crit-soft: #42191d; --warn: #f2b65a; --warn-soft: #3d2c12;
+  --ok: #6fd3a0; --ok-soft: #133a29; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 1rem/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 800; }
+h3 { font-size: 1.05rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 700 0.74rem/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- cabecera tipo contrato ---------- */
+header.doc { display: grid; gap: 14px; padding-block: 8px 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.9rem; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 600; }
+
+.terms {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+.term { background: var(--surface); padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+.term .v { font: 700 1.7rem/1.1 var(--f-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.term .k { font-size: 0.86rem; color: var(--muted); }
+.term.signed .v { color: var(--gold); }
+
+/* ---------- pestañas solo con CSS (radio + label) ---------- */
+.tabs > input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.tabbar {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+}
+.tabbar label {
+  cursor: pointer; padding: 9px 13px; border-radius: 8px; font-weight: 600; font-size: 0.92rem;
+  color: var(--muted); display: inline-flex; gap: 8px; align-items: center; user-select: none;
+  transition: background .15s, color .15s;
+}
+.tabbar label .n { font: 700 0.72rem/1 var(--f-mono); color: var(--muted); }
+.tabbar label:hover { background: var(--accent-soft); color: var(--ink); }
+.panel { display: none; margin-top: 14px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 24px clamp(16px, 3vw, 30px); gap: 18px; }
+#t1:checked ~ .panels #p1, #t2:checked ~ .panels #p2, #t3:checked ~ .panels #p3, #t4:checked ~ .panels #p4,
+#t5:checked ~ .panels #p5, #t6:checked ~ .panels #p6, #t7:checked ~ .panels #p7 { display: grid; }
+#t1:checked ~ .tabbar label[for="t1"], #t2:checked ~ .tabbar label[for="t2"], #t3:checked ~ .tabbar label[for="t3"],
+#t4:checked ~ .tabbar label[for="t4"], #t5:checked ~ .tabbar label[for="t5"], #t6:checked ~ .tabbar label[for="t6"],
+#t7:checked ~ .tabbar label[for="t7"] { background: var(--accent); color: var(--surface); }
+#t1:checked ~ .tabbar label[for="t1"] .n, #t2:checked ~ .tabbar label[for="t2"] .n, #t3:checked ~ .tabbar label[for="t3"] .n,
+#t4:checked ~ .tabbar label[for="t4"] .n, #t5:checked ~ .tabbar label[for="t5"] .n, #t6:checked ~ .tabbar label[for="t6"] .n,
+#t7:checked ~ .tabbar label[for="t7"] .n { color: var(--surface); opacity: .8; }
+#t1:focus-visible ~ .tabbar label[for="t1"], #t2:focus-visible ~ .tabbar label[for="t2"], #t3:focus-visible ~ .tabbar label[for="t3"],
+#t4:focus-visible ~ .tabbar label[for="t4"], #t5:focus-visible ~ .tabbar label[for="t5"], #t6:focus-visible ~ .tabbar label[for="t6"],
+#t7:focus-visible ~ .tabbar label[for="t7"] { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* ---------- piezas de contenido ---------- */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.box { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.box.in { border-color: var(--ok); background: var(--ok-soft); }
+.box.out { border-color: var(--crit); background: var(--crit-soft); }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.quote { border-left: 3px solid var(--gold); padding: 4px 0 4px 14px; color: var(--muted); font-size: 0.95rem; }
+
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+details + details { margin-top: 8px; }
+summary { cursor: pointer; padding: 13px 16px; font-weight: 600; display: flex; gap: 12px; align-items: center; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; margin-left: auto; font: 700 1.1rem/1 var(--f-mono); color: var(--accent); transition: transform .2s; }
+details[open] summary::after { transform: rotate(45deg); }
+summary:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; border-radius: 10px; }
+details > div { padding: 0 16px 16px; display: grid; gap: 8px; }
+.lvl { font: 700 0.75rem/1 var(--f-mono); padding: 5px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.95rem; }
+th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 700 0.75rem/1.3 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.pill { display: inline-block; font: 700 0.74rem/1 var(--f-mono); padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+.pill.p1 { background: var(--crit-soft); color: var(--crit); }
+.pill.p2 { background: var(--warn-soft); color: var(--warn); }
+.pill.p3 { background: var(--ok-soft); color: var(--ok); }
+
+/* selector de opción contratada (radio + CSS) */
+.opt > input { position: absolute; opacity: 0; pointer-events: none; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.seg label { cursor: pointer; padding: 8px 12px; border-radius: 7px; font-weight: 600; font-size: 0.9rem; color: var(--muted); }
+#o1:checked ~ .seg label[for="o1"], #o2:checked ~ .seg label[for="o2"], #o3:checked ~ .seg label[for="o3"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / .12); }
+#o1:focus-visible ~ .seg label[for="o1"], #o2:focus-visible ~ .seg label[for="o2"], #o3:focus-visible ~ .seg label[for="o3"] { outline: 3px solid var(--gold); }
+.opt .v1, .opt .v2, .opt .v3 { display: none; }
+#o1:checked ~ .table-wrap .v1, #o2:checked ~ .table-wrap .v2, #o3:checked ~ .table-wrap .v3,
+#o1:checked ~ .note .v1, #o2:checked ~ .note .v2, #o3:checked ~ .note .v3 { display: inline; }
+.opt { display: grid; gap: 14px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.kpi { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.kpi .v { font: 700 1.45rem/1.1 var(--f-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.kpi .f { font: 500 0.78rem/1.4 var(--f-mono); color: var(--muted); }
+
+.steps { display: grid; gap: 10px; counter-reset: s; margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.steps li::before { counter-increment: s; content: counter(s); font: 700 0.85rem/34px var(--f-mono); text-align: center;
+  width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+
+a { color: var(--accent); }
+a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+footer { font-size: 0.86rem; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
+.hang { padding-left: 2em; text-indent: -2em; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="doc">
+    <span class="eyebrow">Acuerdo de nivel de servicio · SLA-CV-2026</span>
+    <h1>Mesa de Ayuda del Campus Virtual</h1>
+    <p class="muted">Acuerdo entre la Unidad de Tecnología (proveedor) y la Facultad de Ciencias Económicas (cliente interno) para el soporte de la plataforma académica de docentes y estudiantes.</p>
+    <div class="meta">
+      <span>Proveedor: <b>Unidad de Tecnología</b></span>
+      <span>Cliente: <b>Facultad de Ciencias Económicas</b></span>
+      <span>Vigencia: <b>III PAC 2026</b></span>
+      <span>Opción contratada: <b>Opción 2</b></span>
+    </div>
+  </header>
+
+  <section class="terms" aria-label="Compromisos principales">
+    <div class="term signed"><span class="v">99,90 %</span><span class="k">Disponibilidad mensual garantizada</span></div>
+    <div class="term"><span class="v">2 h</span><span class="k">Respuesta a incidentes críticos</span></div>
+    <div class="term"><span class="v">4 h</span><span class="k">Respuesta a incidentes normales</span></div>
+    <div class="term"><span class="v">97,70 %</span><span class="k">Copias de seguridad exitosas al mes</span></div>
+    <div class="term"><span class="v">11×5</span><span class="k">Atención de lunes a viernes, 8:00 a 19:00</span></div>
+  </section>
+
+  <div class="tabs">
+    <input type="radio" name="tab" id="t1" checked>
+    <input type="radio" name="tab" id="t2">
+    <input type="radio" name="tab" id="t3">
+    <input type="radio" name="tab" id="t4">
+    <input type="radio" name="tab" id="t5">
+    <input type="radio" name="tab" id="t6">
+    <input type="radio" name="tab" id="t7">
+
+    <nav class="tabbar" aria-label="Componentes del acuerdo">
+      <label for="t1"><span class="n">01</span>Servicio y objetivo</label>
+      <label for="t2"><span class="n">02</span>Alcance</label>
+      <label for="t3"><span class="n">03</span>Roles</label>
+      <label for="t4"><span class="n">04</span>Indicadores</label>
+      <label for="t5"><span class="n">05</span>Tiempos de respuesta</label>
+      <label for="t6"><span class="n">06</span>Monitoreo</label>
+      <label for="t7"><span class="n">07</span>Incumplimientos</label>
+    </nav>
+
+    <div class="panels">
+      <!-- 1. Nombre y objetivo -->
+      <section class="panel" id="p1">
+        <span class="eyebrow">01 · Nombre y objetivo del servicio</span>
+        <h2>Mesa de Ayuda del Campus Virtual</h2>
+        <p>Servicio de soporte para que docentes y estudiantes de la Facultad puedan entrar al Campus Virtual, subir tareas, hacer exámenes en línea y administrar sus cursos sin interrupciones.</p>
+        <div class="cols">
+          <div class="box">
+            <h3>Objetivo</h3>
+            <p>Mantener la plataforma disponible al menos el 99,90 % del mes y atender cada reporte dentro de tiempos medibles, dando prioridad a las fallas que impiden entregar una tarea o hacer un examen.</p>
+          </div>
+          <div class="box">
+            <h3>Por qué importa</h3>
+            <p>Si el Campus se cae durante un examen con hora fija, cientos de estudiantes pierden su intento. Este acuerdo deja por escrito qué se atiende, en cuánto tiempo y quién responde.</p>
+          </div>
+        </div>
+        <p class="quote">Un nivel de servicio se define “con criterios medibles para la entrega de un determinado servicio” (Irontec, 2023, p. 10).</p>
+      </section>
+
+      <!-- 2. Alcance -->
+      <section class="panel" id="p2">
+        <span class="eyebrow">02 · Alcance y limitaciones</span>
+        <h2>Qué cubre el acuerdo y qué queda fuera</h2>
+        <div class="cols">
+          <div class="box in">
+            <h3>Incluido</h3>
+            <ul class="clean">
+              <li>Problemas de acceso con la cuenta institucional.</li>
+              <li>Errores al subir tareas, abrir cuestionarios o ver calificaciones.</li>
+              <li>Configuración de cursos, fechas y tareas para docentes.</li>
+              <li>Consultas de uso de la plataforma.</li>
+              <li>Monitoreo de disponibilidad las 24 horas.</li>
+              <li>Copia de seguridad diaria de los cursos, en horario nocturno.</li>
+            </ul>
+          </div>
+          <div class="box out">
+            <h3>Excluido</h3>
+            <ul class="clean">
+              <li>Fallas del internet del usuario o de su proveedor.</li>
+              <li>Computadoras y celulares personales.</li>
+              <li>Programas que no son de la Universidad.</li>
+              <li>Consultas que ya responden las guías publicadas.</li>
+              <li>Cambios de notas: le corresponden al docente.</li>
+              <li>Nuevas funciones: se tratan como proyecto aparte.</li>
+            </ul>
+          </div>
+        </div>
+        <details>
+          <summary>Ventanas de mantenimiento programado</summary>
+          <div>
+            <p>Los trabajos que interrumpen el servicio se hacen de sábado a las 12:00 a domingo a las 12:00, o de noche entre las 23:00 y las 9:00, con aviso previo de la hora y la duración (Irontec, 2023, pp. 17-18). Ese tiempo no se descuenta de la disponibilidad.</p>
+            <p><b>Regla propia de este acuerdo:</b> no se programa mantenimiento durante semanas de exámenes.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 3. Roles -->
+      <section class="panel" id="p3">
+        <span class="eyebrow">03 · Roles y responsabilidades</span>
+        <h2>Quién hace qué</h2>
+        <p class="muted">Los niveles de soporte siguen el modelo de cuatro niveles de la lectura (Irontec, 2023, p. 5). Abra cada rol para ver sus tareas.</p>
+        <div>
+          <details open>
+            <summary><span class="lvl">USUARIO</span>Estudiante o docente</summary>
+            <div><p>Reporta la falla por el gestor de incidencias con su número de cuenta, el curso afectado y una captura. En un caso crítico también llama a la línea de emergencia.</p></div>
+          </details>
+          <details>
+            <summary><span class="lvl">NIVEL 1</span>Mesa de ayuda</summary>
+            <div><p>Recibe el reporte, clasifica la prioridad, resuelve los casos básicos (acceso, uso) y escala lo demás.</p></div>
+          </details>
+          <details>
+            <summary><span class="lvl">NIVEL 2</span>Soporte técnico especializado</summary>
+            <div><p>Atiende fallas de la plataforma: tareas que no cargan, cuestionarios con error, permisos de cursos.</p></div>
+          </details>
+          <details>
+            <summary><span class="lvl">NIVEL 3</span>Administración de sistemas</summary>
+            <div><p>Servidor, base de datos y copias de seguridad. Investiga las causas de fondo y apoya a los niveles 1 y 2.</p></div>
+          </details>
+          <details>
+            <summary><span class="lvl">NIVEL 4</span>Proveedor externo</summary>
+            <div><p>Fabricante de la plataforma o del hospedaje. Queda fuera del acuerdo salvo que se contrate aparte.</p></div>
+          </details>
+          <details>
+            <summary><span class="lvl">GESTIÓN</span>Coordinador del SLA</summary>
+            <div><p>Mide los indicadores, entrega el informe mensual a la Facultad y convoca la revisión trimestral del acuerdo.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- 4. KPIs -->
+      <section class="panel" id="p4">
+        <span class="eyebrow">04 · Métricas de desempeño</span>
+        <h2>Indicadores que se miden cada mes</h2>
+        <div class="kpis">
+          <div class="kpi"><span class="v">≥ 99,90 %</span><b>Disponibilidad</b><span class="f">100 × (tiempo acordado − caídas no programadas) / tiempo acordado</span></div>
+          <div class="kpi"><span class="v">≥ 97,70 %</span><b>Copias de seguridad exitosas</b><span class="f">copias correctas / copias programadas</span></div>
+          <div class="kpi"><span class="v">&lt; 2 h</span><b>Respuesta a críticos</b><span class="f">promedio del mes</span></div>
+          <div class="kpi"><span class="v">≥ 90 %</span><b>Casos resueltos a tiempo</b><span class="f">casos dentro del plazo / casos totales</span></div>
+          <div class="kpi"><span class="v">1 / mes</span><b>Informe entregado en plazo</b><span class="f">primeros 5 días hábiles</span></div>
+          <div class="kpi"><span class="v">≥ 4 / 5</span><b>Satisfacción del usuario</b><span class="f">encuesta al cerrar el caso</span></div>
+        </div>
+        <p class="muted">La fórmula de disponibilidad, la meta de copias de seguridad y el informe mensual vienen de la lectura (Irontec, 2023, pp. 10, 14). Las metas de casos a tiempo y de satisfacción son propias de este acuerdo.</p>
+      </section>
+
+      <!-- 5. Tiempos -->
+      <section class="panel" id="p5">
+        <span class="eyebrow">05 · Tiempos de respuesta y resolución</span>
+        <h2>Tabla de tiempos por prioridad</h2>
+        <div class="opt">
+          <input type="radio" name="opcion" id="o1">
+          <input type="radio" name="opcion" id="o2" checked>
+          <input type="radio" name="opcion" id="o3">
+          <div>
+            <p class="muted" style="margin-bottom:8px">Cambie de opción para comparar los niveles de servicio. Este acuerdo contrata la Opción 2.</p>
+            <div class="seg" role="group" aria-label="Opción de servicio">
+              <label for="o1">Opción 1</label>
+              <label for="o2">Opción 2 · contratada</label>
+              <label for="o3">Opción 3</label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Prioridad</th><th>Ejemplo en el Campus</th><th>Respuesta</th><th>Resolución</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="pill p1">P1 · CRÍTICO</span></td>
+                  <td>La plataforma no carga o un examen en curso no abre para nadie.</td>
+                  <td class="num"><span class="v1">4 h</span><span class="v2">2 h</span><span class="v3">1 h</span></td>
+                  <td class="num"><span class="v1">sin plazo</span><span class="v2">4 h</span><span class="v3">2 h</span></td>
+                </tr>
+                <tr>
+                  <td><span class="pill p2">P2 · NORMAL</span></td>
+                  <td>Funciona con límites: una tarea no deja subir archivos.</td>
+                  <td class="num"><span class="v1">8 h</span><span class="v2">4 h</span><span class="v3">2 h</span></td>
+                  <td class="num"><span class="v1">sin plazo</span><span class="v2">8 h</span><span class="v3">4 h</span></td>
+                </tr>
+                <tr>
+                  <td><span class="pill p3">P3 · CONSULTA</span></td>
+                  <td>No hay falla: el usuario pide información.</td>
+                  <td class="num">1 día hábil</td>
+                  <td class="num">2 días hábiles</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note muted">Los tiempos de P1 y P2 son los de la tabla de opciones de la lectura (Irontec, 2023, p. 16): <span class="v1">en la Opción 1 solo se garantiza la respuesta.</span><span class="v2">la Opción 2 garantiza respuesta y resolución.</span><span class="v3">la Opción 3 es la más rápida y la más costosa.</span> Los tiempos de P3 son propios de este acuerdo y se cuentan en horario de atención.</p>
+        </div>
+        <details>
+          <summary>¿Qué prioridad tiene mi caso?</summary>
+          <div>
+            <p><span class="pill p1">P1</span> Si el servicio no se puede usar o la seguridad está en riesgo, es crítico. Repórtelo por el gestor y llame a la línea de emergencia.</p>
+            <p><span class="pill p2">P2</span> Si el Campus funciona pero algo falla, es normal.</p>
+            <p><span class="pill p3">P3</span> Si no hay falla y necesita saber cómo hacer algo, es consulta.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 6. Monitoreo -->
+      <section class="panel" id="p6">
+        <span class="eyebrow">06 · Mecanismo de monitoreo y reporte</span>
+        <h2>Cómo se vigila el acuerdo</h2>
+        <ol class="steps">
+          <li><div><h3>Gestor de incidencias</h3><p>Cada caso entra por un solo canal con número de ticket. El sistema guarda la hora de recepción, de respuesta y de cierre, siguiendo prácticas ITIL (Irontec, 2023, p. 22).</p></div></li>
+          <li><div><h3>Monitoreo automático 24×7</h3><p>Una herramienta revisa la disponibilidad del Campus las 24 horas, todo el año, y avisa al nivel 3 cuando hay una caída.</p></div></li>
+          <li><div><h3>Informe mensual</h3><p>Incluye el porcentaje de disponibilidad, las copias de seguridad exitosas, la lista completa de incidencias y el tiempo medio por petición (Irontec, 2023, p. 14).</p></div></li>
+          <li><div><h3>Revisión trimestral</h3><p>La Facultad y la Unidad de Tecnología revisan los resultados y ajustan metas o recursos.</p></div></li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Servicio</th><th>Horario</th><th>Canal</th></tr></thead>
+            <tbody>
+              <tr><td>Mesa de ayuda</td><td class="num">11×5 · 8:00 a 19:00</td><td>Gestor de incidencias</td></tr>
+              <tr><td>Monitoreo</td><td class="num">24×7×365</td><td>Automático</td></tr>
+              <tr><td>Incidentes críticos en exámenes</td><td class="num">24×7×365</td><td>Línea de emergencia</td></tr>
+              <tr><td>Copia de seguridad</td><td class="num">1 vez al día, de noche</td><td>Automático</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 7. Incumplimientos -->
+      <section class="panel" id="p7">
+        <span class="eyebrow">07 · Incumplimientos y compensaciones</span>
+        <h2>Qué pasa si no se cumple</h2>
+        <p>La Facultad reporta el incumplimiento dentro de 10 días hábiles con el servicio afectado, la fecha y la evidencia, como pide la lectura (Irontec, 2023, p. 19). Como es un acuerdo interno, la compensación es un plan de acción en lugar de un crédito en dinero.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Disponibilidad del mes</th><th>En la lectura (cliente externo)</th><th>En este acuerdo (cliente interno)</th></tr></thead>
+            <tbody>
+              <tr><td class="num">98 % a 99,9 %</td><td>Crédito del 10 %</td><td>Plan de mejora en 5 días hábiles</td></tr>
+              <tr><td class="num">95 % a &lt; 98 %</td><td>Crédito del 20 %</td><td>Informe a la Decanatura y refuerzo de personal</td></tr>
+              <tr><td class="num">90 % a &lt; 95 %</td><td>Crédito del 30 %</td><td>Revisión del acuerdo con las autoridades</td></tr>
+              <tr><td class="num">&lt; 90 %</td><td>Crédito del 50 %</td><td>Reprogramación de exámenes afectados y revisión del proveedor externo</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">Los créditos de la segunda columna son los de la lectura (Irontec, 2023, p. 19). No cuentan como incumplimiento las caídas por fuerza mayor, ataques externos o mantenimiento programado (pp. 20-21).</p>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <span>Elaborado por <b>Emily Rocío Castellanos Cortes</b> · 20172030007 · Políticas Públicas y Gobierno de TI (DIA199) · Actividad 8 · Simulación académica</span>
+    <span class="hang">Irontec. (2023). <i>Acuerdo de nivel de servicio (SLA)</i> [Lectura del curso]. <a href="https://micrositios-cv.unah.edu.hn/die/die_rri_cfe/IA199/u2_t5_rc_lecturapdf01_Acuerdodeniveldeservicio_sla_2023.pdf">micrositios-cv.unah.edu.hn</a></span>
+  </footer>
+</div>
+</body>
+</html>
